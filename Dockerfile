@@ -31,4 +31,8 @@ WORKDIR /app
 # Switch to non-root user
 USER $USERNAME
 
-COPY --from=build /app/target/gist-api-java-0.0.1-SNAPSHOT.jar
+COPY --from=build /app/target/gist-api-java-0.0.1-SNAPSHOT.jar app.jar
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-jar", "app.jar"]
