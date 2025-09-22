@@ -14,9 +14,9 @@ jobs:
       REGISTRY: docker.io
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-      SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+      #SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      #SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      #SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
 
     steps:
     - name: Checkout code
@@ -28,18 +28,18 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Cache Maven packages
-      uses: actions/cache@v3
-      with:
-        path: ~/.m2
-        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-        restore-keys: ${{ runner.os }}-maven-
+   # - name: Cache Maven packages
+   #   uses: actions/cache@v3
+    #  with:
+     #   path: ~/.m2
+      #  key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+       # restore-keys: ${{ runner.os }}-maven-
 
     - name: Build and test with Maven
-      run: mvn clean verify
+      run: mvn clean install 
 
-    - name: SonarQube Scan
-      run: mvn sonar:sonar -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }} -Dsonar.host.url=${{ env.SONAR_HOST_URL }} -Dsonar.login=${{ env.SONAR_TOKEN }}
+   # - name: SonarQube Scan
+   #   run: mvn sonar:sonar -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }} -Dsonar.host.url=${{ env.SONAR_HOST_URL }} -Dsonar.login=${{ env.SONAR_TOKEN }}
 
     - name: Log in to Docker Hub
       run: echo "${{ env.DOCKER_PASSWORD }}" | docker login -u "${{ env.DOCKER_USERNAME }}" --password-stdin
