@@ -1,25 +1,21 @@
-name: CI/CD with SonarQube and AKS
+name: Build and Deploy to AKS
 
 on:
   push:
     branches:
       - main
 
+env:
+  REGISTRY: docker.io
+  IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/gist-api-java
+  TAG: latest
+
 jobs:
-  build-test-sonar-deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
-    env:
-      IMAGE_NAME: gist-api-java
-      REGISTRY: docker.io
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-      SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
-
     steps:
-    - name: Checkout code
+    - name: Checkout source code
       uses: actions/checkout@v3
 
     - name: Set up JDK 17
@@ -28,27 +24,27 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Cache Maven packages
-      uses: actions/cache@v3
-      with:
-        path: ~/.m2
-        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-        restore-keys: ${{ runner.os }}-maven-
-
-    - name: Build and test with Maven
-      run: mvn clean verify
-
-    - name: SonarQube Scan
-      run: mvn sonar:sonar -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }} -Dsonar.host.url=${{ env.SONAR_HOST_URL }} -Dsonar.login=${{ env.SONAR_TOKEN }}
+    - name: Build with Maven
+      run: mvn clean package --file pom.xml
 
     - name: Log in to Docker Hub
-      run: echo "${{ env.DOCKER_PASSWORD }}" | docker login -u "${{ env.DOCKER_USERNAME }}" --password-stdin
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Build Docker image
-      run: docker build -t ${{ env.REGISTRY }}/${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest .
+    - name: Scan image with Trivy
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: myacr.azurecr.io/myimage:latest
+        severity: CRITICAL,HIGH
+        exit-code: 1
+      
 
-    - name: Push Docker image
-      run: docker push ${{ env.REGISTRY }}/${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+    - name: Build and push Docker image
+      run: |
+        docker build -t $REGISTRY/$IMAGE_NAME:$TAG .
+        docker push $REGISTRY/$IMAGE_NAME:$TAG
 
     - name: Set up kubectl
       uses: azure/setup-kubectl@v3
@@ -56,7 +52,8 @@ jobs:
         version: 'latest'
 
     - name: Configure Kubeconfig
-      run: echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 --decode > $HOME/.kube/config
+      run: |
+        echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 --decode > $HOME/.kube/config
 
     - name: Deploy to AKS
       run: |
