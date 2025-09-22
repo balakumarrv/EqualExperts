@@ -3,6 +3,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.2.5</version> <!-- Use latest stable version -->
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+
     <groupId>com.example</groupId>
     <artifactId>gist-api-java</artifactId>
     <version>0.0.1-SNAPSHOT</version>
@@ -14,11 +22,13 @@
     </properties>
 
     <dependencies>
+        <!-- Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- Testing -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -28,13 +38,13 @@
 
     <build>
         <plugins>
-            <!-- Spring Boot -->
+            <!-- Spring Boot plugin -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
 
-            <!-- JaCoCo plugin for code coverage -->
+            <!-- JaCoCo plugin for coverage -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -55,7 +65,7 @@
                 </executions>
             </plugin>
 
-            <!-- SonarQube Scanner plugin -->
+            <!-- Sonar plugin -->
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
